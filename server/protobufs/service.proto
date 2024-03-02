@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package fileSharing;
+
+// LOGIN
+
+service LoginService {
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+}
+
+message LoginRequest{
+    string address = 1;
+    repeated string items = 2;
+}
+
+message LoginResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// LOGOUT
+
+service LogoutService {
+    rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+}
+
+message LogoutRequest {
+    string address = 1;
+}
+
+message LogoutResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// TRANSFER
+
+service TransferService {
+    rpc Transfer(TransferRequest) returns (TransferResponse) {}
+}
+
+message TransferRequest {
+    string name = 1;
+}
+
+message TransferResponse {
+    bool success = 1;
+    string content = 2;
+}
+
+// UPLOAD
+
+service UploadService {
+    rpc Upload(UploadRequest) returns (UploadResponse) {}
+}
+
+message UploadRequest {
+    string name = 1;
+    string content = 2;
+}
+
+message UploadResponse {
+    bool success = 1;
+    string name = 2;
+}
+
+// TABLE
+
+service TableService {
+    rpc Table(TableRequest) returns (TableResponse) {}
+}
+
+message TableRequest {
+    string address = 1;
+    repeated string items = 2;
+}
+
+message TableResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// PING
+
+service PingService {
+    rpc Ping(PingRequest) returns (PingResponse) {}
+}
+
+message PingRequest {
+    string address = 1;
+}
+
+message PingResponse {
+    bool success = 1;
+}
