@@ -1,12 +1,12 @@
 #!/bin/bash
 
+# Start pserver.py in the background
 python pserver.py &
-
 PSERVER_PID=$!
 
-python pclient.py &
+# Start pclient.py in the foreground
+python pclient.py
 
-PCLIENT_PID=$!
-
-wait $PSERVER_PID $PCLIENT_PID
-
+# After pclient.py exits, gracefully shutdown pserver.py
+kill -SIGTERM $PSERVER_PID
+wait $PSERVER_PID

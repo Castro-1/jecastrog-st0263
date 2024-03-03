@@ -9,39 +9,22 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-peer_connected = []
+peer_connected = set()
 item_to_peer = {}
-peer_count = 0
-
 
 
 class LoginService(service_pb2_grpc.LoginServiceServicer):
     def Login(self, request, context):
-        global item_to_peer
         address = request.address
         items = request.items
 
-        print("Login")
-
         if address in peer_connected:
-            return service_pb2.LoginResponse(
-                success=False, message="Ya estás iniciado!"
-            )
+            return service_pb2.LoginResponse(success=False, message="Ya estás iniciado!")
 
-        peer_connected.append(address)
+        peer_connected.add(address)
 
-        print(items)
         for item in items:
-            if item not in item_to_peer.keys():
-                item_to_peer[item] = [address]
-                continue
-            if address in item_to_peer[item]:
-                continue
-
-            item_to_peer[item] += [address]
-
-        print(f"Peers conectados: {peer_connected}")
-        print(f"Items a Peer: {item_to_peer}")
+            item_to_peer.setdefault(item, []).append(address)
 
         return service_pb2.LoginResponse(success=True, message="Bienvenido!")
 
@@ -50,92 +33,58 @@ class LogoutService(service_pb2_grpc.LogoutServiceServicer):
     def Logout(self, request, context):
         address = request.address
 
-        print("Logout")
-
         if address not in peer_connected:
-            return service_pb2.LogoutResponse(
-                success=False, message="No estabas iniciado"
-            )
+            return service_pb2.LogoutResponse(success=False, message="No estabas iniciado")
 
         peer_connected.remove(address)
 
-        print(f"Estado de Peers: {peer_connected}")
+        for items in item_to_peer.values():
+            if address in items:
+                items.remove(address)
 
         return service_pb2.LogoutResponse(success=True, message="Hasta pronto!")
 
+
 class TableService(service_pb2_grpc.TableServiceServicer):
     def Table(self, request, context):
-        global item_to_peer
         address = request.address
         items = request.items
 
-        print("Table")
-
         for item in items:
-            if item not in item_to_peer.keys():
-                item_to_peer[item] = [address]
-                continue
-            if address in item_to_peer[item]:
-                continue
-
-            item_to_peer[item] += [address]
-        
-        print(item_to_peer)
+            item_to_peer.setdefault(item, []).append(address)
 
         return service_pb2.TableResponse(success=True, message="Tabla actualizada")
 
+
 @app.route('/peer', methods=['POST', 'GET'])
 def get_peer():
-    global peer_count
     if request.method == 'POST':
         if not request.json or 'name' not in request.json:
             abort(400)
-        
+
         name = request.json['name']
 
-        print("Download")
-
-        if name not in item_to_peer:
+        if name not in item_to_peer or not item_to_peer[name]:
             return jsonify(success=False, message="No existe el archivo.")
-        
-        peer_addresses = item_to_peer[name]
-        random_number = random.randint(0, len(peer_addresses) - 1)
-                
-        peer_address = peer_addresses[random_number]
 
-        print(f"Peer seleccionado: {peer_address}")
-
+        peer_address = random.choice(item_to_peer[name])
         return jsonify(success=True, address=peer_address)
-    
+
     if request.method == 'GET':
         bad_address = request.args.get('address')
-        if len(peer_connected) == 0:
-            return jsonify(success=False, message="No hay peers conectados.")
-        
-        peer_address = ""
 
-        if peer_count >= len(peer_connected):
-            peer_count = 0
+        valid_peers = [peer for peer in peer_connected if peer != bad_address]
 
-        peer_address = peer_connected[peer_count]
-        print("Bad address: ", bad_address)
-        print("Peer seleccionado: ", peer_address)
-        peer_count += 1
-        while bad_address == peer_address and peer_count < len(peer_connected):
-            peer_address = peer_connected[peer_count]
-            peer_count += 1
-
-        if peer_address == "" or bad_address == peer_address:
+        if not valid_peers:
             return jsonify(success=False, message="No hay peers disponibles.")
-        return jsonify(success=True, address=peer_address)
 
-        
+        peer_address = random.choice(valid_peers)
+        return jsonify(success=True, address=peer_address)
 
 
 def run_flask_app():
-    server_ip = os.getenv("SERVER_IP")
-    app.run(debug=True, host=server_ip, port=50052, use_reloader=False)
-        
+    app.run(debug=True, host='0.0.0.0', port=50052, use_reloader=False)
+
 
 def serve():
     print("El servidor se está ejecutando")
@@ -147,7 +96,7 @@ def serve():
 
     grpc_thread = threading.Thread(target=server.start)
     grpc_thread.start()
-    
+
     flask_thread = threading.Thread(target=run_flask_app)
     flask_thread.start()
 
