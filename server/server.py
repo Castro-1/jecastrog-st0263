@@ -4,6 +4,8 @@ from flask import Flask, request, jsonify, abort
 import grpc
 from protobufs import service_pb2, service_pb2_grpc
 import random
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
@@ -131,7 +133,8 @@ def get_peer():
 
 
 def run_flask_app():
-    app.run(debug=True, host='127.0.0.1', port=50052, use_reloader=False)
+    server_ip = os.getenv("SERVER_IP")
+    app.run(debug=True, host=server_ip, port=50052, use_reloader=False)
         
 
 def serve():
@@ -153,4 +156,5 @@ def serve():
 
 
 if __name__ == "__main__":
+    load_dotenv()
     serve()
