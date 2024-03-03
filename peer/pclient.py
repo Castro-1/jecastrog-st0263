@@ -9,8 +9,8 @@ resources = []
 
 
 
-def get_pserver_address(type: str, base_server_address: str, data: str | None):
-    if type == "download":
+def get_pserver_address(query_type: str, base_server_address: str, data: str | None):
+    if query_type == "download":
         try:
             response = requests.post(f"http://{base_server_address}/peer", json={"name": data})
             data = response.json()
@@ -21,7 +21,7 @@ def get_pserver_address(type: str, base_server_address: str, data: str | None):
         except Exception as e:
             print(e)
             return None
-    if type == "upload":
+    if query_type == "upload":
         try:
             response = requests.get(f"http://{base_server_address}/peer?address={data}")
             data = response.json()
