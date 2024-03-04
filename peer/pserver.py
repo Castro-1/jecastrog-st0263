@@ -11,6 +11,9 @@ from contextlib import contextmanager
 
 server = None
 
+load_dotenv()
+
+
 peer_ip = os.getenv("PEER_IP")
 peer_port = os.getenv("PEER_PORT")
 base_server_ip = os.getenv("BASE_SERVER_IP")
@@ -109,5 +112,4 @@ def run():
         grpc_thread.join()
 
 if __name__ == "__main__":
-    load_dotenv()
     run()

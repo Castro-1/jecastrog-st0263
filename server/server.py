@@ -52,6 +52,8 @@ class TableService(service_pb2_grpc.TableServiceServicer):
 
         for item in items:
             item_to_peer.setdefault(item, []).append(address)
+        
+        print(item_to_peer)
 
         return service_pb2.TableResponse(success=True, message="Tabla actualizada")
 
