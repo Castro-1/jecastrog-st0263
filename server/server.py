@@ -24,7 +24,10 @@ class LoginService(service_pb2_grpc.LoginServiceServicer):
         peer_connected.add(address)
 
         for item in items:
-            item_to_peer.setdefault(item, []).append(address)
+            if item not in item_to_peer:
+                item_to_peer[item] = [address]
+            if address not in item_to_peer[item]:
+                item_to_peer.setdefault(item, []).append(address)
 
         return service_pb2.LoginResponse(success=True, message="Bienvenido!")
 
