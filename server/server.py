@@ -28,6 +28,9 @@ class LoginService(service_pb2_grpc.LoginServiceServicer):
                 item_to_peer[item] = [address]
             if address not in item_to_peer[item]:
                 item_to_peer.setdefault(item, []).append(address)
+        
+        print(peer_connected)
+        print(item_to_peer)
 
         return service_pb2.LoginResponse(success=True, message="Bienvenido!")
 
@@ -54,9 +57,13 @@ class TableService(service_pb2_grpc.TableServiceServicer):
         items = request.items
 
         for item in items:
-            item_to_peer.setdefault(item, []).append(address)
+            if item not in item_to_peer:
+                item_to_peer[item] = [address]
+            if address not in item_to_peer[item]:
+                item_to_peer.setdefault(item, []).append(address)
         
         print(item_to_peer)
+        
 
         return service_pb2.TableResponse(success=True, message="Tabla actualizada")
 
